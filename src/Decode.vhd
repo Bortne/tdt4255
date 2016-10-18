@@ -20,7 +20,8 @@ entity Decode is
     j_enable        : out std_logic;
     j_target        : out std_logic_vector(25 downto 0);
     jr_enable       : out std_logic
-
+    --alu_is_zero     : in std_logic;
+    --branch          : out std_logic;
    );
    
 end Decode;
@@ -43,6 +44,7 @@ begin
         j_enable    <= '0';
         j_target <= instruction(25 downto 0);
         jr_enable <= '0';
+       -- branch <= '0';
         
         if processor_en ='1' then
         --No writes to register 0
@@ -95,6 +97,19 @@ begin
                 j_enable <= '1';
                 j_target <= instruction(25 downto 0);
 
+                
+            when "000100" =>                                        --beq
+                    alu_operation <= ALU_OP_SUB;
+                    register_wen <= true;
+                   -- if alu_is_zero = '1' then
+                 --       branch <= '1';
+                  --  end if;
+                    
+            when "000101" =>                                        --bne
+                alu_operation <= ALU_OP_SUB;
+                --    if alu_is_zero = '0' then
+                 --        branch <= '1';
+                  --  end if;
                                 
             when others =>
                 register_wen <= false;

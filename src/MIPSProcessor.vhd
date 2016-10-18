@@ -37,6 +37,12 @@ architecture Pipelined of MIPSProcessor is
   signal jr_target_shift : std_logic_vector(31 downto 0);
   
   signal imem_addr: std_logic_vector(9 downto 0);
+  --signal reg_under_imem : std_logic_vector(31 downto 0);
+  --signal add_sei_imem : std_logic_vector(31 downto 0);
+  --signal should_branch : std_logic;
+  --signal reg_under_imem_add_one : std_logic_vector(31 downto 0);
+  --signal alu_result : std_logic_vector(31 downto 0);
+  --signal jal_enable : std_logic;
 
 
 begin
@@ -54,14 +60,22 @@ begin
     to_alu_op_b <= choose_immediate when immediate ='1' else rf_out.read_ports(1);
     
     --Data memory outputs
-    --output.dmem_address <= rg_input(0).value(9 downto 0);
+    output.dmem_address <= rg_input(0).value(9 downto 0);
     output.dmem_data <= rf_out.read_ports(1);
   
     jr_target_shift <= std_logic_vector(shift_right(unsigned(rf_out.read_ports(0)), 2));
     
     output.imem_address <= imem_addr;   
+ 
+ 
 
 
+--reg_under_imem_add_one <= std_logic_vector((signed(reg_under_imem) + 1));
+--add_sei_imem <= std_logic_vector(signed(reg_under_imem_add_one) + signed(choose_immediate));
+
+--rg_input(0).value <= std_logic_vector(shift_left(signed(reg_under_imem_add_one), 2)) when jal_enable = '1' else alu_result;
+
+    
     
 decode: entity work.decode
     port map( 
@@ -78,6 +92,9 @@ decode: entity work.decode
         j_enable            => j_enable,
         j_target            => j_target,
         jr_enable           => jr_enable
+        --alu_is_zero         => zero,
+       -- branch              => should_branch,
+       -- jal_enable          => jal_enable
     );
     
 alu: entity work.alu
@@ -103,9 +120,10 @@ program_counter : entity work.PC
         rst             => input.rst,
         j               => j_enable,
         j_target        => j_target,
-        out_to_imem     => output.imem_address,
+        out_to_imem     => imem_addr,
         jr_enable       => jr_enable,
         jr_target       => jr_target_shift
+        
     );
       
 end architecture Pipelined;
