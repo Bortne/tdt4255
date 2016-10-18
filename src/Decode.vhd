@@ -98,15 +98,15 @@ begin
                 j_target <= instruction(25 downto 0);
 
                 
-            when "000100" =>                                        --beq
-                    alu_operation <= ALU_OP_SUB;
-                    register_wen <= true;
+           -- when "000100" =>                                        --beq
+           --         alu_operation <= ALU_OP_SUB;
+           --         register_wen <= true;
                    -- if alu_is_zero = '1' then
                  --       branch <= '1';
                   --  end if;
                     
-            when "000101" =>                                        --bne
-                alu_operation <= ALU_OP_SUB;
+            --when "000101" =>                                        --bne
+            --    alu_operation <= ALU_OP_SUB;
                 --    if alu_is_zero = '0' then
                  --        branch <= '1';
                   --  end if;

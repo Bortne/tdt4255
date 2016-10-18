@@ -20,7 +20,8 @@ end PC;
  architecture Behaviroal of PC is
     
     signal pc : imem_addr_t :=(others => '0');
-        
+    signal to_imem : std_logic_vector(9 downto 0);
+    
 begin
     process(clk) is
       begin
@@ -28,13 +29,14 @@ begin
                if rst ='1' then
                   pc <= (others =>'0');
               elsif pro_enable = '1' then
-                  pc <= std_logic_vector(unsigned(pc) + 1);
+                  pc <= std_logic_vector(unsigned(to_imem) + 1);
               end if;
           end if;
      end process;
      
-     out_to_imem <= j_target(9 downto 0) when j='1'
+     to_imem <= j_target(9 downto 0) when j='1'
                     else jr_target(9 downto 0) when jr_enable='1'
                     else pc;
+    out_to_imem <= to_imem;
      
  end architecture Behaviroal;
