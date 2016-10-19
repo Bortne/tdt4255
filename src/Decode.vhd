@@ -19,9 +19,10 @@ entity Decode is
     shift_amount    : out std_logic_vector(4 downto 0);
     j_enable        : out std_logic;
     j_target        : out std_logic_vector(25 downto 0);
-    jr_enable       : out std_logic
-    --alu_is_zero     : in std_logic;
-    --branch          : out std_logic;
+    jr_enable       : out std_logic;
+    alu_is_zero     : in std_logic;
+    branch          : out std_logic;
+    jal_enable      : out std_logic
    );
    
 end Decode;
@@ -29,22 +30,24 @@ end Decode;
 architecture Behavioral of Decode is
     
 begin
-    process(instruction)
+    process(instruction, alu_is_zero)
     begin
     
         --default value
         register_wen <= false;
         immediate <= '0';
         dmem_wen <= '0';
-        register_dst <= instruction(15 downto 11);
+        jr_enable <= '0';
+        branch <= '0';
+        j_enable    <= '0';
+        alu_operation <= ALU_OP_ADD;
         reg_read_0 <= instruction(25 downto 21);
         reg_read_1 <= instruction(20 downto 16);
-        alu_operation <= ALU_OP_ADD;
+        register_dst <= instruction(15 downto 11);
         shift_amount <= instruction(10 downto 6);
-        j_enable    <= '0';
         j_target <= instruction(25 downto 0);
-        jr_enable <= '0';
-       -- branch <= '0';
+        jal_enable <= '0';
+        
         
         if processor_en ='1' then
         --No writes to register 0
@@ -56,7 +59,8 @@ begin
         case instruction(31 downto 26) is 
             when "000000" =>
                 case instruction(5 downto 0) is
-                    when "100001" =>                                --addu   
+                    when "100001" => 
+                                                                    --addu   
                     when "101010" =>
                         alu_operation <= ALU_OP_LT;                 --slt
                     when "000000" =>
@@ -98,18 +102,26 @@ begin
                 j_target <= instruction(25 downto 0);
 
                 
-           -- when "000100" =>                                        --beq
-           --         alu_operation <= ALU_OP_SUB;
-           --         register_wen <= true;
-                   -- if alu_is_zero = '1' then
-                 --       branch <= '1';
-                  --  end if;
+           when "000100" =>                                        --beq
+                    alu_operation <= ALU_OP_SUB;
+                    register_wen <= false;
+                    if alu_is_zero = '1' then
+                        branch <= '1';
+                    end if;
                     
-            --when "000101" =>                                        --bne
-            --    alu_operation <= ALU_OP_SUB;
-                --    if alu_is_zero = '0' then
-                 --        branch <= '1';
-                  --  end if;
+            when "000101" =>                                        --bne
+                alu_operation <= ALU_OP_SUB;
+                register_wen <= false;
+                    if alu_is_zero = '0' then
+                         branch <= '1';
+                    end if;
+                    
+            when "000011" =>                                        --jal
+                register_dst <= "11111";
+                jal_enable <= '1';
+                register_wen <=true;
+                j_target <= instruction(25 downto 0);
+                j_enable <= '1';
                                 
             when others =>
                 register_wen <= false;

@@ -13,7 +13,9 @@ entity PC is
     j_target    : in std_logic_vector(25 downto 0);
     jr_target   : in std_logic_vector(31 downto 0);
     jr_enable   : in std_logic; 
-    out_to_imem : out std_logic_vector(9 downto 0)
+    out_to_imem : out std_logic_vector(9 downto 0);
+    branch_enable :in std_logic;
+    branch_target :in std_logic_vector(31 downto 0)
     );
 end PC;
  
@@ -36,7 +38,9 @@ begin
      
      to_imem <= j_target(9 downto 0) when j='1'
                     else jr_target(9 downto 0) when jr_enable='1'
+                    else branch_target(9 downto 0) when branch_enable ='1'
                     else pc;
+                    
     out_to_imem <= to_imem;
      
  end architecture Behaviroal;
