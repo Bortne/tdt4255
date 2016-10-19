@@ -22,7 +22,9 @@ entity Decode is
     jr_enable       : out std_logic;
     alu_is_zero     : in std_logic;
     branch          : out std_logic;
-    jal_enable      : out std_logic
+    jal_enable      : out std_logic;
+    load_enable     : out std_logic;
+    load_wen        : out boolean
    );
    
 end Decode;
@@ -47,6 +49,8 @@ begin
         shift_amount <= instruction(10 downto 6);
         j_target <= instruction(25 downto 0);
         jal_enable <= '0';
+        load_enable <= '0';
+        load_wen <= false;
         
         
         if processor_en ='1' then
@@ -93,7 +97,6 @@ begin
                 
             when "101011" =>                                        --sw
                 dmem_wen <= '1';
-                alu_operation <= ALU_OP_ADD;
                 immediate <= '1';
                 register_wen <= false;
                 
@@ -122,6 +125,18 @@ begin
                 register_wen <=true;
                 j_target <= instruction(25 downto 0);
                 j_enable <= '1';
+                
+            when "100011" =>                                        --lw
+                alu_operation <= ALU_OP_ADD;
+                immediate <= '1';
+                load_enable <= '1';
+                register_dst <= instruction(20 downto 16);
+                if instruction(20 downto 16) = "00000" then
+                    register_wen <= false;
+                    else register_wen <= true;
+                end if;
+                
+                
                                 
             when others =>
                 register_wen <= false;

@@ -46,6 +46,14 @@ architecture Pipelined of MIPSProcessor is
   
   signal temp_result : std_logic_vector(31 downto 0);
   
+  signal load_enable : std_logic;
+  signal load_wen    : boolean;
+  signal load_dst   : std_logic_vector(4 downto 0);
+  signal reg_dmem   : std_logic_vector(31 downto 0);
+  signal value_reg_dmem :std_logic_vector(31 downto 0);
+  signal load_enable_wait_one : std_logic;
+  signal resize_imem_addr  : std_logic_vector(31 downto 0);
+  
 begin
   regfile_inst : RegisterFile
     port map (
@@ -68,26 +76,34 @@ begin
     jr_target_shift <= std_logic_vector(shift_right(unsigned(rf_out.read_ports(0)), 2));
     
     output.imem_address <= imem_addr;   
+    value_reg_dmem <= std_logic_vector(shift_left(unsigned(reg_under_imem_add_one), 2)) when jal_enable = '1' else temp_result;
  
     process(input.clk)
     begin
     if rising_edge(input.clk) then
-         reg_under_imem <= std_logic_vector(resize(unsigned(imem_addr),32));
+         reg_under_imem <= resize_imem_addr;
+         register_input(0).we <= load_wen;
+         reg_dmem <= value_reg_dmem;
+         register_input(0).dst <= load_dst;
+         load_enable_wait_one <= load_enable;
+         
     end if;
     end process;
-
+    resize_imem_addr <= std_logic_vector(resize(unsigned(imem_addr),32));
     reg_under_imem_add_one <= std_logic_vector((unsigned(reg_under_imem) + 1));
     add_sei_imem <= std_logic_vector(unsigned(reg_under_imem_add_one) + unsigned(choose_immediate));
     
-    register_input(0).value <= std_logic_vector(shift_left(unsigned(reg_under_imem_add_one), 2)) when jal_enable = '1' else temp_result;
+    register_input(0).value <= input.dmem_data when load_enable_wait_one='1' else reg_dmem;
+    
+    
     
 decode: entity work.decode
     port map( 
         instruction        => input.imem_data,
         processor_en       => input.processor_enable,
         alu_operation      => alu_operation,
-        register_wen       => register_input(0).we,
-        register_dst        => register_input(0).dst,
+        register_wen       => load_wen,
+        register_dst        => load_dst,
         reg_read_0          => rf_in.read_ports(0),
         reg_read_1          => rf_in.read_ports(1),
         immediate           => immediate,
@@ -98,7 +114,8 @@ decode: entity work.decode
         jr_enable           => jr_enable,
         branch              => should_branch,
         jal_enable          => jal_enable,
-        alu_is_zero         => zero
+        alu_is_zero         => zero,
+        load_enable         => load_enable
     );
     
 alu: entity work.alu
