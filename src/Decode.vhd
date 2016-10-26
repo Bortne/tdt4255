@@ -8,8 +8,7 @@ use work.alu_ops.all;
 entity Decode is
   port (
     instruction     : in  std_logic_vector(31 downto 0);
-    processor_en    : in std_logic :='0';
-    register_wen    : out boolean := false;
+    register_wen    : out boolean;
     alu_operation   : out alu_op_t;
     register_dst    : out std_logic_vector(4 downto 0);
     reg_read_0      : out std_logic_vector(4 downto 0);
@@ -20,11 +19,11 @@ entity Decode is
     j_enable        : out std_logic;
     j_target        : out std_logic_vector(25 downto 0);
     jr_enable       : out std_logic;
-    alu_is_zero     : in std_logic;
-    branch          : out std_logic;
+    beq_enable      : out std_logic;
+    bne_enable      : out std_logic;
     jal_enable      : out std_logic;
     load_enable     : out std_logic;
-    load_wen        : out boolean
+    jal_target      : out std_logic_vector(25 downto 0)
    );
    
 end Decode;
@@ -32,7 +31,7 @@ end Decode;
 architecture Behavioral of Decode is
     
 begin
-    process(instruction, alu_is_zero)
+    process(instruction)
     begin
     
         --default value
@@ -40,7 +39,8 @@ begin
         immediate <= '0';
         dmem_wen <= '0';
         jr_enable <= '0';
-        branch <= '0';
+        beq_enable <= '0';
+        bne_enable <= '0';
         j_enable    <= '0';
         alu_operation <= ALU_OP_ADD;
         reg_read_0 <= instruction(25 downto 21);
@@ -50,18 +50,16 @@ begin
         j_target <= instruction(25 downto 0);
         jal_enable <= '0';
         load_enable <= '0';
-        load_wen <= false;
-        
-        
-        if processor_en ='1' then
-        --No writes to register 0
-            if instruction(15 downto 11) = "00000" then
-               register_wen <= false;
-            else register_wen <=true;
-            end if;
-        
+        jal_enable <= '0';
+        jal_target <= instruction(25 downto 0);
+
+                 
         case instruction(31 downto 26) is 
             when "000000" =>
+            if instruction(15 downto 11) = "00000" then
+                           register_wen <= false;
+                        else register_wen <=true;
+            end if;
                 case instruction(5 downto 0) is
                     when "100001" => 
                                                                     --addu   
@@ -106,25 +104,20 @@ begin
 
                 
            when "000100" =>                                        --beq
-                    alu_operation <= ALU_OP_SUB;
-                    register_wen <= false;
-                    if alu_is_zero = '1' then
-                        branch <= '1';
-                    end if;
+                alu_operation <= ALU_OP_SUB;
+                beq_enable <= '1';
+                register_wen <= false;
                     
             when "000101" =>                                        --bne
                 alu_operation <= ALU_OP_SUB;
+                bne_enable <= '1';
                 register_wen <= false;
-                    if alu_is_zero = '0' then
-                         branch <= '1';
-                    end if;
                     
             when "000011" =>                                        --jal
                 register_dst <= "11111";
                 jal_enable <= '1';
                 register_wen <=true;
-                j_target <= instruction(25 downto 0);
-                j_enable <= '1';
+                jal_target <= instruction(25 downto 0);
                 
             when "100011" =>                                        --lw
                 alu_operation <= ALU_OP_ADD;
@@ -135,14 +128,11 @@ begin
                     register_wen <= false;
                     else register_wen <= true;
                 end if;
-                
-                
-                                
+                           
             when others =>
                 register_wen <= false;
                 
         end case;
-        end if;
     end process;
     
 end architecture Behavioral;

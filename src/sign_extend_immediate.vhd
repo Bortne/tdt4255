@@ -13,10 +13,7 @@ entity Sign_Extender is
  end Sign_Extender;
  
  architecture Behavioral of Sign_Extender is
-    
-    signal imm : std_logic_vector(15 downto 0);
-    signal imm_signed : std_logic_vector(31 downto 0); 
- 
+     
 begin
     process(immediate)
     begin

@@ -12,10 +12,15 @@ entity PC is
     j           : in std_logic;
     j_target    : in std_logic_vector(25 downto 0);
     jr_target   : in std_logic_vector(31 downto 0);
-    jr_enable   : in std_logic; 
+    jr_enable   : in std_logic;
+    jal_enable  : in std_logic;
+    jal_target  : in std_logic_vector(25 downto 0);
     out_to_imem : out std_logic_vector(9 downto 0);
-    branch_enable :in std_logic;
-    branch_target :in std_logic_vector(31 downto 0)
+    beq_enable  : in std_logic;
+    bne_enable  : in std_logic;
+    branch_target :in std_logic_vector(31 downto 0);
+    alu_is_zero : in std_logic
+    
     );
 end PC;
  
@@ -25,7 +30,7 @@ end PC;
     signal to_imem : std_logic_vector(9 downto 0);
     
 begin
-    process(clk) is
+    process(clk, j, jal_enable, beq_enable, bne_enable) is
       begin
           if rising_edge(clk) then
                if rst ='1' then
@@ -38,7 +43,9 @@ begin
      
      to_imem <= j_target(9 downto 0) when j='1'
                     else jr_target(9 downto 0) when jr_enable='1'
-                    else branch_target(9 downto 0) when branch_enable ='1'
+                    else jal_target(9 downto 0) when jal_enable='1'
+                    else branch_target(9 downto 0) when beq_enable ='1' and alu_is_zero='1'
+                    else branch_target(9 downto 0) when bne_enable ='1' and alu_is_zero='0'
                     else pc;
                     
     out_to_imem <= to_imem;
