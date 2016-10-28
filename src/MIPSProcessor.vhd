@@ -100,6 +100,9 @@ architecture Pipelined of MIPSProcessor is
     signal processor_enable_wait    : std_logic;
     signal processor_enable_waited  : std_logic;
     
+    signal instruction              :std_logic_vector(31 downto 0);
+    signal branch_taken             : std_logic;
+    
 
     
 begin
@@ -114,6 +117,9 @@ begin
   rf_in.write_ports <= register_input;
   
    
+   instruction <= (others => '0') when branch_taken='1'
+                    else input.imem_data;
+
 waitFORprocessor : process(input.clk)
       begin
           if rising_edge(input.clk) then
@@ -126,7 +132,7 @@ waitFORprocessor : process(input.clk)
   
 IFID : process(input.clk)
       begin
-      if rising_edge(input.clk) and processor_enable_waited ='1' then
+      if rising_edge(input.clk)then -- and processor_enable_waited ='1' then
            reg_under_imem <= resize_imem_addr;
       end if;
       end process;  
@@ -247,7 +253,7 @@ IFID : process(input.clk)
     
 decode: entity work.decode
     port map( 
-        instruction         => input.imem_data,
+        instruction         => instruction,
         alu_operation       => alu_operation,
         register_wen        => register_wen,
         register_dst        => register_dst,
@@ -297,7 +303,8 @@ program_counter : entity work.PC
         bne_enable      => bne_enable_IDEX,
         jal_target      => jal_target_IDEX,
         jal_enable      => jal_enable_IDEX,
-        alu_is_zero        => zero
+        alu_is_zero        => zero,
+        branch_taken    => branch_taken
     );
       
 end architecture Pipelined;

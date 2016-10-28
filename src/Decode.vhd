@@ -8,21 +8,24 @@ use work.alu_ops.all;
 entity Decode is
   port (
     instruction     : in  std_logic_vector(31 downto 0);
-    register_wen    : out boolean;
-    alu_operation   : out alu_op_t;
-    register_dst    : out std_logic_vector(4 downto 0);
     reg_read_0      : out std_logic_vector(4 downto 0);
     reg_read_1      : out std_logic_vector(4 downto 0);
-    immediate       : out std_logic;
+    
+    register_dst    : out std_logic_vector(4 downto 0);
+    register_wen    : out boolean;
     dmem_wen        : out std_logic;
+    load_enable     : out std_logic;
+    
+    alu_operation   : out alu_op_t;
+    immediate       : out std_logic;
     shift_amount    : out std_logic_vector(4 downto 0);
+    
     j_enable        : out std_logic;
     j_target        : out std_logic_vector(25 downto 0);
     jr_enable       : out std_logic;
     beq_enable      : out std_logic;
     bne_enable      : out std_logic;
     jal_enable      : out std_logic;
-    load_enable     : out std_logic;
     jal_target      : out std_logic_vector(25 downto 0)
    );
    

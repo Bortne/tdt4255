@@ -19,7 +19,8 @@ entity PC is
     beq_enable  : in std_logic;
     bne_enable  : in std_logic;
     branch_target :in std_logic_vector(31 downto 0);
-    alu_is_zero : in std_logic
+    alu_is_zero : in std_logic;
+    branch_taken : out std_logic
     
     );
 end PC;
@@ -40,6 +41,11 @@ begin
               end if;
           end if;
      end process;
+     
+     --default value
+     branch_taken <= '1' when beq_enable='1' and alu_is_zero='1'
+                    else '1' when bne_enable='1' and alu_is_zero='0'
+                    else '0';
      
      to_imem <= j_target(9 downto 0) when j='1'
                     else jr_target(9 downto 0) when jr_enable='1'
