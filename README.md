@@ -1,9 +1,9 @@
 # TDT4255
 Exercises in TDT4255. 
 
-Exercis1 -> Implement a 3-stage pipeline processor. Works in FPGA in the course
+Exercis1 -> Implement a 5-stage pipeline processor. 
 
-Exercise2 -> Implement a 5-stage pipleline processor, with stall, flush and hazard detection. Works on FPGA in the course. WARNING: Stall, flush and hazard detection is not implemented yet
+Exercise2 -> Implement a 5-stage dual-issue pipleline processor, with stall, flush and hazard detection. WARNING: Stall, flush and hazard detection is not implemented yet
 
 
 If you are taking this course feel free to get inspiration from this.
